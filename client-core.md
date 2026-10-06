@@ -12,7 +12,6 @@ const client = new LiveClient({
 })
 
 client.sync(page.props._live) // on every navigation
-client.afterReload(page.props._live) // after every reload
 const release = client.pause() // while a form is being edited
 release()
 ```
@@ -33,16 +32,21 @@ release()
 | Member | Description |
 | --- | --- |
 | `sync(liveProp)` | Make subscriptions match `page.props._live`: join new channels, leave removed ones, raise cursors. Safe to call repeatedly. Accepts `undefined`/`null` (leaves everything) |
-| `afterReload(liveProp)` | Raise cursors from a fresh `_live` and mark the client synced |
 | `pause()` | Hold reloads and cancel the pending timer. Signals still queue. Counted; returns a function that releases this pause (once) |
 | `resume()` | Release one pause; schedules a reload once none remain and something queued |
 | `resetPause()` | Release every pause. The adapters call it on navigation |
 | `refresh()` | Reload every bound prop now, clearing the queue. Returns a promise |
 | `destroy()` | Leave all channels, clear timers and listeners. The client is unusable afterwards |
 | `status` | `'connecting' \| 'live' \| 'reconnecting' \| 'offline'` |
-| `lastSyncedAt` | `Date` of the last finished reload or `afterReload`, else `null` |
+| `lastSyncedAt` | `Date` of the last finished reload, else `null` |
+| `stale` | `true` once reloads gave up after repeated failures (retries stop after 5); cleared by the next successful reload |
 | `onStatus(listener)` | Subscribe to status changes; returns an unsubscribe function |
 | `onSynced(listener)` | Subscribe to sync events; returns an unsubscribe function |
+| `onStale(listener)` | Called with the new value whenever `stale` flips; returns an unsubscribe function |
+
+## Reload outcomes
+
+The `reload` function you pass decides how a reload ends. Resolve when it finished. Reject with an error to count a failure: the props are re-queued and retried with backoff, and after 5 failures the client gives up and `stale` turns true. Reject with `ReloadCancelled` (exported from core) when another visit pre-empted the reload: it is retried without counting a failure. Reloads never overlap: `refresh()` and a reconnect catch-up queue behind the one in flight. `createInertiaReloader(router)` builds a reloader with these semantics from Inertia's `router`.
 
 ## What happens on a signal
 
@@ -98,4 +102,4 @@ type Reloader = (only: string[]) => Promise<void>
 1. Create a `LiveClient` with a reloader that performs a partial reload with `only`.
 2. Watch `page.props._live`; call `client.sync()` whenever it changes.
 3. Call `client.destroy()` when the app unmounts.
-4. Expose `status`, `lastSyncedAt`, `pause`, `resume` and `refresh` in whatever reactive form your framework uses.
+4. Expose `status`, `lastSyncedAt`, `stale`, `pause`, `resume` and `refresh` in whatever reactive form your framework uses.

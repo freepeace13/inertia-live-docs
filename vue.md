@@ -49,13 +49,14 @@ The default reloader, `inertiaReloader`, runs `router.reload({ only })` and reso
 ```ts
 import { useLive } from '@freepeace13/inertia-live-vue'
 
-const { status, lastSyncedAt, pause, resume, refresh } = useLive()
+const { status, lastSyncedAt, stale, pause, resume, refresh } = useLive()
 ```
 
 | Member | Type |
 | --- | --- |
 | `status` | `Ref<'connecting' \| 'live' \| 'reconnecting' \| 'offline'>` |
 | `lastSyncedAt` | `Ref<Date \| null>` |
+| `stale` | `Ref<boolean>`. True after reloads gave up following repeated failures; the page may be outdated. Clears on the next successful reload |
 | `pause()` | Hold reloads; signals keep queueing. Scoped to this component: released on unmount and on navigation |
 | `resume()` | Release this component's latest pause and flush anything queued |
 | `refresh()` | Reload every live prop now; returns a promise |
@@ -80,6 +81,10 @@ const { status, lastSyncedAt, pause, resume } = useLive()
 ```
 
 `pause()` stops a reload from interrupting an edit; queued signals flush on `resume()`.
+
+## Server-side rendering
+
+During SSR the plugin is inert: it opens no channels and registers no router listeners, and `useLive()` returns a client that reports `connecting`. Live behavior starts in the browser.
 
 ## Testing
 

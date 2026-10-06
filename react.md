@@ -49,7 +49,7 @@ A non-persistent layout still works but recreates the client on every navigation
 import { useLive } from '@freepeace13/inertia-live-react'
 
 function LiveBadge() {
-  const { status, lastSyncedAt, pause, resume, refresh } = useLive()
+  const { status, lastSyncedAt, stale, pause, resume, refresh } = useLive()
 
   return (
     <>
@@ -66,6 +66,7 @@ function LiveBadge() {
 | --- | --- |
 | `status` | `'connecting' \| 'live' \| 'reconnecting' \| 'offline'` |
 | `lastSyncedAt` | `Date \| null` |
+| `stale` | `boolean`. True after reloads gave up following repeated failures; the page may be outdated. Clears on the next successful reload |
 | `pause()` | Hold reloads; signals keep queueing. Scoped to this component: released on unmount and on navigation |
 | `resume()` | Release this component's latest pause and flush anything queued |
 | `refresh()` | Reload every live prop now; returns a promise |

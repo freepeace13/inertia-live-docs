@@ -175,13 +175,13 @@ createInertiaApp({
 **Optional composable**
 
 ```ts
-const { status, lastSyncedAt, pause, resume, refresh } = useLive()
+const { status, lastSyncedAt, stale, pause, resume, refresh } = useLive()
 // status: 'connecting' | 'live' | 'reconnecting' | 'offline'
 ```
 
 Use `pause()` while a user edits a form so a reload does not interrupt them; queued signals flush on `resume()`.
 
-**React.** Instead of a plugin, wrap the app in `InertiaLiveProvider` and read state with the `useLive()` hook, which returns the same `{ status, lastSyncedAt, pause, resume, refresh }`.
+**React.** Instead of a plugin, wrap the app in `InertiaLiveProvider` and read state with the `useLive()` hook, which returns the same `{ status, lastSyncedAt, stale, pause, resume, refresh }`.
 
 ```tsx
 import { InertiaLiveProvider } from '@freepeace13/inertia-live-react'
