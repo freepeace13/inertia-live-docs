@@ -47,12 +47,12 @@ You need:
 ## Client
 
 ```bash
-npm install @freepeace13/inertia-live-vue laravel-echo     # Vue 3
-npm install @freepeace13/inertia-live-react laravel-echo   # React
-npm install @freepeace13/inertia-live-core laravel-echo    # another framework
+npm install @freepeace13/inertia-live-vue laravel-echo pusher-js     # Vue 3
+npm install @freepeace13/inertia-live-react laravel-echo pusher-js   # React
+npm install @freepeace13/inertia-live-core laravel-echo pusher-js    # another framework
 ```
 
-Each adapter pulls in `@freepeace13/inertia-live-core`. Install only the adapter you use, with its Inertia peer (`@inertiajs/vue3` + `vue`, or `@inertiajs/react` + `react`).
+`pusher-js` is the client for Reverb and Pusher (both speak the Pusher protocol); other Echo drivers need their own client library instead. Each adapter pulls in `@freepeace13/inertia-live-core`. Install only the adapter you use, with its Inertia peer (`@inertiajs/vue3` + `vue`, or `@inertiajs/react` + `react`).
 Configure Echo once and pass the instance to the adapter:
 
 ```ts

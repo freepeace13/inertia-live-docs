@@ -6,6 +6,8 @@ Impact key: **none** = additive or internal, **minor** = breaks a narrow use, **
 
 ## Defects found
 
+Both are fixed (2026-10-27): defect 1 in the client repo (stub completed and typed over `LiveClient`'s public members, with a `useLive()` assertion in the server test), defect 2 in `v1/installation.md`.
+
 1. **Vue SSR crashes in `useLive()`.** The inert client that `InertiaLive` provides on the server (`packages/vue/src/plugin.ts`, `serverClient()`) has no `stale` or `onStale`, but `useLive()` reads `client.stale` and calls `client.onStale(...)`. During SSR that throws `client.onStale is not a function`. The `as unknown as LiveClient` cast hides the gap from the compiler, and no test renders on the server. Fix: add the two members, drop the cast (type the stub as `Pick` of `LiveClient` or share one inert client from core), and add an SSR test. Impact: none. Confirm by reproducing before fixing.
 2. **`pusher-js` is missing from the install command.** `installation.md` imports `pusher-js` in the Echo example, but the `npm install` lines list only the adapter and `laravel-echo`. Impact: docs only.
 
