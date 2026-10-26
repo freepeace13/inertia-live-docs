@@ -21,6 +21,7 @@ Unversioned. They apply to the whole project and are the source of truth for the
 | [Release policy](release-policy.md) | Versioning, version branches, support window, dist-tags, docs versioning, release flow |
 | [Roadmap](roadmap.md) | The road to 1.0: phases, definition of done, open questions |
 | [Decision log](decision-log.md) | Numbered release and 1.0 decisions |
+| [Phase 1 audit](phase-1-audit.md) | Findings on setup, the PHP and JS APIs and testing, with scope candidates |
 
 ## Repositories
 
