@@ -1,0 +1,4 @@
+.DS_Store
+
+# Generated specs and plans (local only)
+/docs/
