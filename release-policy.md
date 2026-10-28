@@ -10,6 +10,18 @@ How Inertia Live is versioned, branched and released. This applies to the client
 - **After 1.0:** standard semver, with an explicit protocol version for compatibility between client and server (see D-012, open).
 - **Prereleases** use `-rc.N` only. They do not touch the changelog; the stable release carries the whole entry.
 
+## Deprecation
+
+Accepted as D-025. This applies from 1.0. Before 1.0 anything may change in a minor (D-001), though a changelog entry is still required. The tiers are defined in [Stable API](v1/stable-api.md).
+
+- **Stable items** are removed or changed incompatibly only in a major release, and only after being deprecated in an earlier release of the same major. A deprecated item keeps working for the rest of that major.
+- **How a deprecation is announced:** a `### Deprecated` changelog entry that names the replacement; the docs mark the item and link the replacement; and a runtime notice where one is possible (PHP: `trigger_error` with `E_USER_DEPRECATED`; JavaScript: one `console.warn` per item per page load, development builds only). The notice names the item and the replacement and is emitted once.
+- **Experimental items** may change or be removed in a minor. They are listed under `### Changed (experimental)` in the changelog, and get one minor of notice when that is practical. They need no deprecation period.
+- **Internal items** carry no promise and no notice.
+- **The wire protocol** keeps one version for a whole major: protocol 1 for all 1.x. Optional fields may be added in a minor because receivers ignore fields they do not know. A new protocol version arrives only with a new major, and the changelog says which protocol each release speaks. Whether a 2.x client also speaks protocol 1 is decided when 2.0 is planned.
+- **Client and server across minors:** a 1.x client works with any 1.y server, and the reverse, because new features degrade to the old behavior (for example the client falls back to the `_live` re-read when a server sends no `_live.cursors`). A feature that cannot degrade needs a major.
+- **Dropping a supported dependency version** (PHP, Laravel, Inertia, Node) is not a breaking change; see [Compatibility](v1/compatibility.md).
+
 ## Branches
 
 - `main` is the development line.

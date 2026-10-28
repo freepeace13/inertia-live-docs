@@ -32,6 +32,7 @@ A non-persistent layout still works but recreates the client on every navigation
 | `maxWaitMs` | `debounceMs * 4` | Longest a steady signal stream can postpone a reload |
 | `connection` | Pusher connection | Override connection observation for other drivers |
 | `reload` | `router.reload` based | Replace the reloader (mainly for tests) |
+| `fetchCursors` | `fetch` | Replaces the request to the server's cursors endpoint (mainly for tests) |
 | `onError` | none | Called when a live reload fails |
 | `children` | none | The wrapped tree |
 

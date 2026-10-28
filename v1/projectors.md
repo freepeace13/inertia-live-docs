@@ -5,7 +5,7 @@ Signals are emitted from **projectors**, after the read model has been written. 
 ## `EmitsLiveChanges`
 
 ```php
-use Freepeace13\InertiaLive\Concerns\EmitsLiveChanges;
+use InertiaLive\Concerns\EmitsLiveChanges;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
 final class DocumentProjector extends Projector
@@ -87,4 +87,4 @@ During `php artisan event-sourcing:replay`, every historical event passes throug
 
 ## Disabling
 
-Set `INERTIA_LIVE_ENABLED=false` to stop recording changes entirely (`liveChanged()` and the trait's automatic path both become no-ops). Pages still render; `->live()` bindings are still emitted.
+Set `INERTIA_LIVE_ENABLED=false` to stop recording changes entirely (`liveChanged()` and the trait's automatic path both become no-ops). Pages still render; their bindings (`InertiaLive::render()` or `->live()`) are still emitted.

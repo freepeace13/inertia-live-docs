@@ -7,7 +7,7 @@ The socket carries only `{ topic, version, props }`. The worst outcome of a misc
 Every topic is broadcast on `private-{channel_prefix}.{topic}`. Subscribing requires passing Laravel's channel authorization, which you register with `Live::authorize()`:
 
 ```php
-use Freepeace13\InertiaLive\Facades\Live;
+use InertiaLive\Facades\Live;
 
 Live::authorize('documents.{uuid}', fn (User $user, string $uuid) =>
     $user->can('view', Document::whereUuid($uuid)->firstOrFail())
@@ -19,6 +19,15 @@ Register authorizers in a service provider's `boot()` (or any code that runs on 
 - The first argument is a **pattern**. Each `{placeholder}` matches one dot-free segment of the topic.
 - The callback receives the authenticated user followed by the pattern's parameters, exactly like `Broadcast::channel()`. Return a truthy value to allow, falsy to deny.
 - Under the hood it calls `Broadcast::channel("{channel_prefix}.{pattern}", $callback)`, so it participates in your normal broadcasting auth endpoint.
+
+### The cursors endpoint
+
+The client asks `GET /inertia-live/cursors` for the current cursor of each topic when it subscribes ([Wire protocol](protocol.md#the-cursors-endpoint)). The endpoint runs the same callbacks you register with `Live::authorize()` for the signed-in user, so a user who may not subscribe to a topic does not get its cursor. Two things differ from channel authorization:
+
+- The callbacks receive the topic's placeholders as plain strings. A callback that type-hints a model for implicit binding cannot be used there; take the string and look the model up yourself.
+- A callback that throws counts as a denial. With `inertia-live.debug` on, the exception is logged at debug level.
+
+A denied topic is left out of the answer and the client reloads that binding's props instead, so this costs a reload and never exposes data. `Live::canSubscribe($user, $topic)` runs the same check.
 
 ### Fail closed
 

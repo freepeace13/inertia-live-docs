@@ -2,6 +2,8 @@
 
 Oct 6, 2026 · @Kin
 
+> **Wire behavior.** The normative description of the signal, the `_live` prop, cursors and the client rules is [Wire protocol](protocol.md). This document is the original design and architecture write-up.
+
 ## Overview
 
 The package lets an Inertia page stay live: when a stored event updates a projection, every page showing that projection refreshes the affected props automatically, with no per-page WebSocket code.
@@ -89,7 +91,7 @@ The server API has three touchpoints: declare topics on events, mark changes in 
 **1. Topics on stored events (attribute).** The event declares which topic it affects; the topic template is resolved from the event's properties.
 
 ```php
-use Freepeace13\InertiaLive\Attributes\LiveTopic;
+use InertiaLive\Attributes\LiveTopic;
 
 #[LiveTopic('documents.{documentUuid}', props: ['document', 'activity'])]
 final class DocumentRenamed extends ShouldBeStored
@@ -104,7 +106,7 @@ final class DocumentRenamed extends ShouldBeStored
 **2. Signals emitted after projection, not on event record.** A projector trait marks the topic changed once its read model is written. This guarantees the refetch sees the new data, including for queued projectors.
 
 ```php
-use Freepeace13\InertiaLive\Concerns\EmitsLiveChanges;
+use InertiaLive\Concerns\EmitsLiveChanges;
 
 final class DocumentProjector extends Projector
 {

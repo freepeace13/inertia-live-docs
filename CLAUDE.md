@@ -24,7 +24,7 @@ Sibling repos (local checkouts next to this one): `../inertia-live` (client pack
 
 ## Status
 
-The packages are at 0.1.x (client 0.1.1, Laravel 0.1.0). The 1.0 scope is not yet defined (D-011); see `roadmap.md` before documenting anything as stable.
+The packages are at 0.1.x (client 0.1.1, Laravel 0.1.0). The 1.0 scope is decided (D-011); see `roadmap.md` and `decision-log.md` before documenting anything as stable.
 
 ## Keeping the tracker in sync
 

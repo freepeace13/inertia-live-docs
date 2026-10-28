@@ -12,12 +12,22 @@ Walk the path from the write side to the page:
 | Is the signal flushed? | With `debug` on, a "signal flushed" log line appears after the request or job |
 | Is it dropped server-side? | Logs: "topic has no authorizer; signal not sent" or "signal dropped by rate limit" |
 | Is the broadcaster running? | Reverb/Pusher up, `BROADCAST_CONNECTION` set |
-| Does the page have bindings? | `page.props._live.bindings` is non-empty; the controller calls `->live()` |
+| Does the page have bindings? | `page.props._live.bindings` is non-empty; the controller marks props with `live()` and renders through `InertiaLive::render()`, or calls `->live()` |
 | Can the browser subscribe? | Channel auth endpoint returns 200 for `private-live.{topic}`; authorizer registered |
 | Is the client installed? | Vue plugin or React provider present; `echo` is the configured instance |
 | Does the signal reach a bound prop? | Signal `props` intersect the binding's `only` (an empty `only` never reloads) |
 
+## Every new subscription reloads the page's props
+
+After a channel is subscribed the client asks the cursors endpoint ([Wire protocol](protocol.md#the-cursors-endpoint)). If that fails it re-reads the page, which costs a reload of the bound props. Causes:
+
+- The request got a 401, 403 or 419: the endpoint needs the session cookie, so the `web` middleware must stay in `inertia-live.cursors.middleware`.
+- A 429: the throttle (default 60 a minute) was exceeded.
+- The authorizer type-hints a bound model. It is called with strings at this endpoint and is denied; take string parameters ([Authorization](authorization.md)).
+- A 404: the route was removed or the path changed after `_live` was rendered, or routes are cached from an older release.
+
 ## Log: "Inertia Live topic has no authorizer; signal not sent."
+
 
 A private topic has no `Live::authorize()` pattern matching it. Register one, remembering that each `{placeholder}` matches one dot-free segment. See [Authorization](authorization.md).
 

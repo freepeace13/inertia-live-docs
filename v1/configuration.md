@@ -28,6 +28,8 @@ return [
 | `cursor_ttl` | 30 days | Seconds a topic's counter lives after it is created; `null` keeps counters forever. When one expires, the next number restarts from the clock, above every earlier one, so this is safe |
 | `replay.suppress` | `true` | Suppress signals while `Projectionist::isReplaying()` |
 | `replay.final_signal` | `false` | After a replay, send one signal per touched topic (it takes a fresh sequence number, so open pages accept it) |
+| `cursors.path` | `inertia-live/cursors` | Path of the endpoint the client asks for current cursors when a channel is subscribed. Advertised to the client as `_live.cursors` |
+| `cursors.middleware` | `['web', 'throttle:60,1']` | Middleware of that route. It needs a session so private topics can be authorized for the signed-in user. Each request runs up to 50 authorizers, so keep the throttle tight; a throttled client falls back to the heavier `_live` re-read |
 | `debug` | `APP_DEBUG` | Log every flushed signal at debug level (topic, version, props) |
 
 ## Validation

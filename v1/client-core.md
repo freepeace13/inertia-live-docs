@@ -25,7 +25,8 @@ release()
 | `debounceMs` | `number` | `150` | Quiet window before reloading. `0` reloads immediately |
 | `connection` | `ConnectionLike` | Echo's Pusher connection | Override connection observation for other drivers |
 | `maxWaitMs` | `number` | `debounceMs * 4` | Longest a steady stream of signals can postpone a reload |
-| `onError` | `(error) => void` | none | Called each time `reload` rejects. The props are re-queued and retried with backoff (1 s doubling to 30 s, 5 retries) |
+| `fetchCursors` | `FetchCursors` | same-origin `fetch` | Asks the cursors endpoint for current cursors when a subscription is confirmed. Used only when `_live.cursors` is present; if it is missing or the request fails, the client re-reads `_live` |
+| `onError` | `(error) => void` | none | Called each time `reload` rejects. The props are re-queued and retried with backoff (1 s doubling to 30 s, 5 retries). Also called once per topic when a signal uses a newer `protocol` than the client supports; the client then reloads every prop bound to that topic ([Wire protocol](protocol.md#versioning)) |
 
 ## Methods and properties
 
@@ -51,16 +52,16 @@ The `reload` function you pass decides how a reload ends. Resolve when it finish
 ## What happens on a signal
 
 1. Echo delivers `.live.changed` on `{channel}`. The leading dot is because the server uses `broadcastAs()`.
-2. `CursorStore.accept(topic, version)`: stale versions (`<= cursor`) are dropped, .
+2. The client's cursor for the topic is checked: stale versions (`<= cursor`) are dropped.
 3. The affected props are the signal's `props` intersected with the binding's `props`. A signal with no props means "unknown" and affects every bound prop. No affected props means no reload.
 4. Affected props join a pending set and a debounce timer starts (restarted by each new signal, but never delayed past `maxWaitMs` since the first).
 5. When it fires, one `reload(props)` runs with the union of pending props.
 6. If more signals arrived while reloading, one follow-up reload runs after it finishes. Paused clients wait for `resume()`.
-7. When a channel's subscription is confirmed (`subscribed`), the client re-reads `_live` alone. If a binding's cursor is ahead of what the client knew, a signal slipped in between render and subscribe, so that binding's props reload.
+7. When a channel's subscription is confirmed (`subscribed`), the client asks the cursors endpoint (`_live.cursors`) for the current cursor of every channel confirmed in that burst, in one request (at most 50 topics each). A cursor ahead of the client's means a signal slipped in between render and subscribe, so that binding's props reload; a topic the server leaves out cannot be verified, so its props reload too. Without `_live.cursors`, or if the request fails, the client re-reads `_live` alone and compares cursors there.
 
 ## Connection tracking
 
-`ConnectionTracker` maps Pusher connection states to `LiveStatus`:
+The client maps Pusher connection states to `LiveStatus`:
 
 | Pusher state | Status |
 | --- | --- |
@@ -81,16 +82,17 @@ interface ConnectionLike {
 }
 ```
 
-## `CursorStore`
+## `X-Socket-ID` in a custom adapter
 
-Exported for advanced use. `get(topic)`, `raise(topic, version)` (never backwards), `accept(topic, version)` (true and advances only if newer) and `forget(topic)`.
+The server skips the sender's own socket when it broadcasts, so every Inertia request must carry the socket id. The Vue and React adapters add it for you. A custom adapter calls `withSocketId(echo, headers)` (exported from core, experimental) from its request hook: it sets `X-Socket-ID` from `echo.socketId()` unless the header is already there. `SOCKET_ID_HEADER` is the header name.
 
 ## Types
 
 ```ts
 interface Binding { topic: string; channel: string; props: string[]; cursor: number; public?: boolean }
-interface LiveProp { bindings: Binding[] }
-interface ChangeSignal { topic: string; version: number; props: string[] }
+interface LiveProp { bindings: Binding[]; cursors?: string } // cursors: URL of the cursors endpoint
+interface ChangeSignal { topic: string; version: number; props: string[]; protocol?: number }
+type FetchCursors = (url: string, topics: string[]) => Promise<Record<string, number>>
 type LiveStatus = 'connecting' | 'live' | 'reconnecting' | 'offline'
 type Reloader = (only: string[]) => Promise<void>
 ```

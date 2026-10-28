@@ -9,7 +9,7 @@ Use stable, non-guessable identifiers (UUIDs) in topics. Sequential IDs make top
 Put the attribute on a stored event to declare which topic it affects.
 
 ```php
-use Freepeace13\InertiaLive\Attributes\LiveTopic;
+use InertiaLive\Attributes\LiveTopic;
 
 #[LiveTopic('documents.{documentUuid}', props: ['document', 'activity'])]
 final class DocumentRenamed extends ShouldBeStored
@@ -48,7 +48,7 @@ An event without the attribute resolves to no topics and is ignored by `EmitsLiv
 
 ## Declaring `props`
 
-Props are a hint for the client: a signal lists the prop keys that changed, and the client reloads only the intersection with the props the page bound with `->live(only: [...])`. If the intersection is empty the cursor advances but nothing reloads.
+Props are a hint for the client: a signal lists the prop keys that changed, and the client reloads only the intersection with the props the page bound (the props wrapped in `live()`, or listed in `->live(only: [...])`). If the intersection is empty the cursor advances but nothing reloads.
 
 ```
 signal.props   = ['activity']
@@ -75,7 +75,7 @@ public function onCommentAdded(CommentAdded $event): void
 }
 ```
 
-Signature: `liveChanged(string $topic, array $props = [], bool $public = false)`.
+Signature: `liveChanged(string $topic, array $props = [], bool $public = false)`. This hook is experimental ([Stable API](stable-api.md)): it may change in a 1.x minor.
 
 It is available on projectors using `EmitsLiveChanges` and is only active while a stored event is being handled: it records a change for the topic, and the flusher assigns the version later. Calling it from anywhere else (a controller, a command) does nothing. It is also a no-op when `inertia-live.enabled` is `false`.
 

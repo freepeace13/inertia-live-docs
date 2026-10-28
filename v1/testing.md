@@ -5,7 +5,7 @@
 `Live::fake()` replaces the flusher with a recorder, so changes are captured instead of broadcast. Nothing touches the cursor store, rate limiter or broadcaster.
 
 ```php
-use Freepeace13\InertiaLive\Facades\Live;
+use InertiaLive\Facades\Live;
 
 it('signals the document topic once', function () {
     Live::fake();
@@ -26,7 +26,32 @@ it('signals the document topic once', function () {
 
 A change is "flushed" when the request, job or command ends (or when the flusher is called). In feature tests that is the end of the simulated request.
 
-`Live::authorize()`, `Live::publicTopic()` and `Live::hasAuthorizerFor()` still delegate to the real manager under the fake. `Live::fake()` can be called repeatedly and does not rebind `LiveManager`, so resolving `ChangeFlusher` or `LiveManager` afterwards still returns the real classes.
+`Live::authorize()`, `Live::publicTopic()`, `Live::hasAuthorizerFor()` and `Live::canSubscribe()` still delegate to the real manager under the fake. `Live::fake()` can be called repeatedly and does not rebind `LiveManager`, so resolving `ChangeFlusher` or `LiveManager` afterwards still returns the real classes.
+
+### Asserting a page's bindings
+
+Controller tests can check which topic and props a page keeps live. `assertLive()` and `assertNotLive()` are available on the `assertInertia()` callback argument and directly on the test response (since 1.0, D-011 item 4).
+
+```php
+use Inertia\Testing\AssertableInertia;
+
+it('keeps the document page live', function () {
+    $this->get(route('documents.show', $doc))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Documents/Show')
+            ->assertLive("documents.{$doc->uuid}", ['document', 'activity']));
+
+    // or, without assertInertia:
+    $this->get(route('documents.show', $doc))->assertNotLive('folders.other');
+});
+```
+
+| Assertion | Passes when |
+| --- | --- |
+| `assertLive($topic, ?array $props = null)` | The page has a binding for the topic and, if `$props` is given, the binding lists exactly those props (order does not matter) |
+| `assertNotLive(?string $topic = null)` | The page has no binding for the topic, or with no argument no bindings at all |
+
+They read the `_live` prop, so they work for pages built with `InertiaLive::render()` and with `->live()`, and for an Inertia JSON request as well as a full page load.
 
 ### Testing without the fake
 
@@ -53,8 +78,11 @@ The Vue and React versions also accept `{ debounceMs }`. All accept `{ channelPr
 | `reloads` | `string[][]`: every `only` list passed to the reloader, in order |
 | `joined` | `Set<string>` of channels currently joined |
 | `left` | Channels left, in order |
-| `emit(topic, version, props = [])` | Deliver a change signal as if broadcast on `{prefix}.{topic}` |
+| `emit(topic, version, props = [], protocol?)` | Deliver a change signal as if broadcast on `{prefix}.{topic}`. Pass `protocol` to simulate a server that sends the field; omit it to simulate one that does not |
 | `setSocketId(id)` | What `echo.socketId()` reports, for sender-exclusion tests |
+| `fetchCursors`, `cursorRequests` | The fake cursors endpoint, already wired into `options` / `providerProps`, and every `{ url, topics }` request made to it |
+| `setServerCursor(topic, cursor)` | The cursor the fake server reports for a topic (default `0`); `undefined` leaves the topic out of the answer |
+| `failCursors(failing = true)` | Make the cursors endpoint fail, to test the fallback to re-reading `_live` |
 | `confirmSubscription(topic)` | Simulate the server confirming the subscription (triggers the missed-signal check) |
 | `setConnectionState(state)` | Simulate `connected`, `connecting`, `unavailable`, `disconnected`, `failed` |
 
@@ -94,5 +122,5 @@ fake.setConnectionState('connected') // triggers one refresh() of all bound prop
 composer install && composer test   # also: composer lint, composer analyse
 
 # client: this repository, from the root
-npm ci && npm test                  # also: npm run typecheck, npm run lint
+pnpm install && pnpm test           # also: pnpm typecheck, pnpm lint
 ```

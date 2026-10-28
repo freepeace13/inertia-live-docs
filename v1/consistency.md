@@ -39,7 +39,7 @@ Bind your own `CursorRepository` to change storage. It must never issue the same
 | Signal arrives mid-reload | Props are queued and one follow-up reload runs when the current one ends |
 | Reload fails | `onError` is called; the props are re-queued and retried with backoff, up to 5 times |
 | Steady signal stream | Debounce is capped by `maxWaitMs`, so a reload still runs |
-| Change between render and subscribe | On subscription the client re-reads `_live`; a newer cursor reloads the bound props |
+| Change between render and subscribe | On subscription the client re-reads `_live`; a newer cursor reloads the bound props. With `_live.cursors` (unreleased) a cursors-only request replaces the re-read ([Wire protocol](protocol.md#the-cursors-endpoint)) |
 
 ## Known limits
 
